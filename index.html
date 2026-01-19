@@ -61,6 +61,7 @@
             gap: 12px;
             max-width: 800px;
             margin: 0 auto;
+            padding-bottom: 50px; /* Extra space at bottom for scrolling */
         }
 
         /* Individual Card */
@@ -73,6 +74,7 @@
             flex-direction: column;
             gap: 10px;
             transition: all 0.2s ease;
+            scroll-margin-top: 20px; /* Helper for scrollIntoView */
         }
 
         .card.done {
@@ -224,8 +226,6 @@
             const data = parseCSV(text);
             
             // Filter and process data
-            // Rules: Ignore row 1 and 2 (Index 0 and 1).
-            // Data needed: Column B (Index 1) and Column C (Index 2).
             const validRows = [];
             
             // Start from index 2 to skip headers
@@ -249,6 +249,9 @@
 
             renderList(validRows);
             loadingEl.style.display = 'none';
+
+            // --- AUTO SCROLL FEATURE ---
+            scrollToProgress();
 
         } catch (err) {
             loadingEl.style.display = 'none';
@@ -350,7 +353,6 @@
             header.appendChild(textDiv);
 
             // Action part (Tree Copy)
-            // Only show actions if there is a tree string
             if (item.tree) {
                 const actions = document.createElement('div');
                 actions.className = 'actions';
@@ -385,6 +387,24 @@
             cardEl.classList.remove('done');
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify([...completedIndices]));
+    }
+
+    // Logic to scroll to the most recently completed item (bottom-most checked item)
+    function scrollToProgress() {
+        if (completedIndices.size === 0) return;
+
+        // Find the maximum ID in the set (assumes IDs correspond to CSV order)
+        const lastCheckedId = Math.max(...completedIndices);
+        
+        // Find that card in the DOM
+        const targetCard = document.querySelector(`.card[data-id="${lastCheckedId}"]`);
+        
+        if (targetCard) {
+            // Smooth scroll to the center of the viewport
+            setTimeout(() => {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
     }
 
     async function copyToClipboard(text, btnElement) {
