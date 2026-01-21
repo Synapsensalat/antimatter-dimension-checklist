@@ -1,6 +1,6 @@
 {
-  "name": "AD Eternity Tracker",
-  "short_name": "AD Tracker",
+  "name": "AD: Eternity Challenges",
+  "short_name": "AD: Eternity Challenges",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#121212",
