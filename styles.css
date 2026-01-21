@@ -17,6 +17,7 @@ body {
     padding: 10px;
     line-height: 1.5;
     overscroll-behavior-y: none;
+    overflow-x: hidden;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -267,6 +268,8 @@ input[type="checkbox"]:checked::after {
     color: var(--text-secondary);
     margin-right: auto;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     overflow: visible;
     text-overflow: clip;
     max-width: none;

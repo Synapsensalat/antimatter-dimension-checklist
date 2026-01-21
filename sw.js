@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ad-tracker-v12'; // v12: update header controls styling
+const CACHE_NAME = 'ad-tracker-v13'; // v13: cache-bust after layout/wrap fixes
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
