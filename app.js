@@ -513,6 +513,9 @@ function toggleStatus(id, isChecked) {
         const card = document.querySelector(`.card[data-id="${id}"]`);
         if (card) isChecked ? card.classList.add('done') : card.classList.remove('done');
     }
+    if (isChecked) {
+        cascadeEcChecks(id);
+    }
 }
 
 function updateText(id, newText) {
@@ -530,6 +533,34 @@ function updateTree(id, newText) {
         item.tree = newText;
         saveData();
     }
+}
+
+function extractEcInfo(text) {
+    const match = String(text || '').match(/^EC(\d+)x(\d+)\b/i);
+    if (!match) return null;
+    return { ec: parseInt(match[1], 10), level: parseInt(match[2], 10) };
+}
+
+function cascadeEcChecks(id) {
+    const item = currentItems.find(i => i.id === id);
+    const info = item ? extractEcInfo(item.task) : null;
+    if (!info || !Number.isFinite(info.ec) || !Number.isFinite(info.level)) return;
+
+    currentItems.forEach((other) => {
+        if (other.id === id) return;
+        const otherInfo = extractEcInfo(other.task);
+        if (!otherInfo) return;
+        if (otherInfo.ec === info.ec && otherInfo.level < info.level) {
+            other.done = true;
+            const card = document.querySelector(`.card[data-id="${other.id}"]`);
+            if (card) {
+                card.classList.add('done');
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (checkbox) checkbox.checked = true;
+            }
+        }
+    });
+    saveData();
 }
 
 function applyEcStyling(id, taskText) {
