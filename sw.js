@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ad-tracker-v11'; // v11: Both handlers on all cards
+const CACHE_NAME = 'ad-tracker-v12'; // v12: update header controls styling
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
