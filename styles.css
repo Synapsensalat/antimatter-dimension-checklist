@@ -51,7 +51,7 @@ h1 {
 .reset-btn {
     background: #1b1b1b;
     border: 1px solid #3a3a3a;
-    color: var(--text-primary);
+    color: #ff5e96;
     padding: 8px 14px;
     border-radius: 8px;
     font-size: 0.85rem;
