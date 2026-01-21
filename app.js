@@ -95,8 +95,8 @@ function renderList() {
         </div>
         ${item.tree ? `
         <div class="actions">
-            <div class="tree-preview">${item.tree}</div>
-            <button class="copy-btn">Copy Tree</button>
+            <div class="tree-preview" contenteditable="true" spellcheck="false">${escapeHtml(item.tree)}</div>
+            <button class="copy-btn" aria-label="Copy tree" title="Copy tree">⧉</button>
         </div>` : ''}
     `;
 
@@ -121,8 +121,13 @@ function renderList() {
         setupLongPressDrag(card);
 
         if (item.tree) {
+            const treeDiv = card.querySelector('.tree-preview');
+            treeDiv.onblur = (e) => updateTree(item.id, e.target.innerText);
+            treeDiv.onkeydown = (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); treeDiv.blur(); }
+            };
             const copyBtn = card.querySelector('.copy-btn');
-            copyBtn.onclick = () => copyToClipboard(item.tree, copyBtn);
+            copyBtn.onclick = () => copyToClipboard(treeDiv.innerText.trim(), copyBtn);
         }
 
         container.appendChild(card);
@@ -147,6 +152,8 @@ function setupPointerDrag(handle, card) {
         dragGhost.style.height = rect.height + 'px';
         // Disable editing on ghost
         dragGhost.querySelector('.task-text').removeAttribute('contenteditable');
+        const ghostTree = dragGhost.querySelector('.tree-preview');
+        if (ghostTree) ghostTree.removeAttribute('contenteditable');
         document.body.appendChild(dragGhost);
 
         // 2. Mark Original as Placeholder
@@ -306,6 +313,8 @@ function setupLongPressDrag(card) {
             dragGhost.style.height = rect.height + 'px';
             const ghostText = dragGhost.querySelector('.task-text');
             if (ghostText) ghostText.removeAttribute('contenteditable');
+            const ghostTree = dragGhost.querySelector('.tree-preview');
+            if (ghostTree) ghostTree.removeAttribute('contenteditable');
             document.body.appendChild(dragGhost);
 
             // Mark as placeholder
@@ -509,6 +518,14 @@ function updateText(id, newText) {
     }
 }
 
+function updateTree(id, newText) {
+    const item = currentItems.find(i => i.id === id);
+    if (item && item.tree !== newText) {
+        item.tree = newText;
+        saveData();
+    }
+}
+
 function saveData() {
     localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(currentItems));
     checkModified();
@@ -516,8 +533,8 @@ function saveData() {
 
 function checkModified() {
     const btnContainer = document.getElementById('reset-container');
-    const currentStr = JSON.stringify(currentItems.map(i => ({ t: i.task, id: i.id })));
-    const defaultStr = JSON.stringify(defaultItems.map(i => ({ t: i.task, id: i.id })));
+    const currentStr = JSON.stringify(currentItems.map(i => ({ t: i.task, tree: i.tree, id: i.id })));
+    const defaultStr = JSON.stringify(defaultItems.map(i => ({ t: i.task, tree: i.tree, id: i.id })));
 
     // Show reset if anything fundamental changed (ignoring done status)
     if (currentStr !== defaultStr || currentItems.length !== defaultItems.length) {
@@ -584,7 +601,7 @@ async function copyToClipboard(text, btnElement) {
     try {
         await navigator.clipboard.writeText(text);
         const originalText = btnElement.textContent;
-        btnElement.textContent = 'Copied!';
+        btnElement.textContent = '✓';
         btnElement.classList.add('copied');
         setTimeout(() => {
             btnElement.textContent = originalText;

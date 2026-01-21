@@ -52,7 +52,7 @@ h1 {
 #challenge-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     max-width: 800px;
     margin: 0 auto;
     padding-bottom: 150px;
@@ -193,6 +193,7 @@ input[type="checkbox"]:checked::after {
     margin-top: 5px;
     border-top: 1px solid #333;
     padding-top: 8px;
+    gap: 8px;
 }
 
 .tree-preview {
@@ -200,20 +201,35 @@ input[type="checkbox"]:checked::after {
     font-size: 0.8rem;
     color: var(--text-secondary);
     margin-right: auto;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 60%;
+    white-space: pre-wrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+    outline: none;
+}
+
+.tree-preview:focus {
+    background: #2b2b2b;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 4px;
 }
 
 .copy-btn {
     background: var(--copy-btn);
     color: white;
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .copy-btn.copied {
@@ -277,5 +293,12 @@ input[type="checkbox"]:checked::after {
     /* Prevent context menu on long press */
     .card * {
         -webkit-touch-callout: none;
+    }
+
+    .tree-preview {
+        white-space: pre-wrap;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
     }
 }
