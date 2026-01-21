@@ -74,6 +74,28 @@ h1 {
     /* Hardware acceleration */
 }
 
+.ec-themed {
+    border-left: 4px solid var(--ec-color);
+}
+
+.ec-prefix {
+    font-weight: 700;
+    color: var(--ec-color);
+}
+
+.ec-1 { --ec-color: #5aa8ff; }
+.ec-2 { --ec-color: #81c784; }
+.ec-3 { --ec-color: #ffb74d; }
+.ec-4 { --ec-color: #ba68c8; }
+.ec-5 { --ec-color: #4db6ac; }
+.ec-6 { --ec-color: #e57373; }
+.ec-7 { --ec-color: #ff8a65; }
+.ec-8 { --ec-color: #f06292; }
+.ec-9 { --ec-color: #aed581; }
+.ec-10 { --ec-color: #ffd54f; }
+.ec-11 { --ec-color: #9575cd; }
+.ec-12 { --ec-color: #26c6da; }
+
 .card.done {
     opacity: 0.6;
     background-color: #181818;

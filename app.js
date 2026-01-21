@@ -81,7 +81,12 @@ function renderList() {
 
     currentItems.forEach((item) => {
         const card = document.createElement('div');
-        card.className = `card ${item.done ? 'done' : ''}`;
+        const formatted = formatTaskText(item.task);
+        const ecClass = formatted.ecNum ? `ec-themed ec-${formatted.ecNum}` : '';
+        card.className = `card ${item.done ? 'done' : ''} ${ecClass}`.trim();
+        if (formatted.ecNum) {
+            card.dataset.ec = String(formatted.ecNum);
+        }
         card.dataset.id = item.id; // Store ID in DOM
 
         // HTML Structure
@@ -91,7 +96,7 @@ function renderList() {
             <div class="checkbox-wrapper">
                 <input type="checkbox" ${item.done ? 'checked' : ''}>
             </div>
-            <div class="task-text" contenteditable="true" spellcheck="false">${escapeHtml(item.task)}</div>
+            <div class="task-text" contenteditable="true" spellcheck="false">${formatted.html}</div>
         </div>
         ${item.tree ? `
         <div class="actions">
@@ -516,6 +521,7 @@ function updateText(id, newText) {
         item.task = newText;
         saveData();
     }
+    applyEcStyling(id, newText);
 }
 
 function updateTree(id, newText) {
@@ -523,6 +529,26 @@ function updateTree(id, newText) {
     if (item && item.tree !== newText) {
         item.tree = newText;
         saveData();
+    }
+}
+
+function applyEcStyling(id, taskText) {
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (!card) return;
+    const formatted = formatTaskText(taskText);
+    const textDiv = card.querySelector('.task-text');
+    if (textDiv) textDiv.innerHTML = formatted.html;
+
+    card.classList.remove('ec-themed');
+    card.classList.forEach((cls) => {
+        if (cls.startsWith('ec-')) card.classList.remove(cls);
+    });
+
+    if (formatted.ecNum) {
+        card.classList.add('ec-themed', `ec-${formatted.ecNum}`);
+        card.dataset.ec = String(formatted.ecNum);
+    } else {
+        delete card.dataset.ec;
     }
 }
 
@@ -577,6 +603,18 @@ function parseCSV(text) {
 function escapeHtml(text) {
     if (text == null) return '';
     return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function formatTaskText(text) {
+    const safeText = text == null ? '' : String(text);
+    const match = safeText.match(/^(EC(\d+)x\d+)(.*)$/);
+    if (!match) {
+        return { html: escapeHtml(safeText), ecNum: null };
+    }
+    const ecNum = parseInt(match[2], 10);
+    const rest = match[3] || '';
+    const html = `<span class="ec-prefix">${escapeHtml(match[1])}</span>${escapeHtml(rest)}`;
+    return { html, ecNum: Number.isFinite(ecNum) ? ecNum : null };
 }
 
 function scrollToProgress() {
