@@ -39,6 +39,16 @@ h1 {
     margin-top: 10px;
 }
 
+.controls,
+#controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
 .reset-btn {
     background: transparent;
     border: 1px solid var(--text-secondary);
@@ -47,6 +57,31 @@ h1 {
     border-radius: 12px;
     font-size: 0.8rem;
     cursor: pointer;
+}
+
+.clear-btn {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+.toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
 }
 
 #challenge-list {

@@ -1,9 +1,11 @@
 const CSV_FILE = 'data.csv';
 const STORAGE_KEY_DATA = 'ad_ec_tracker_completed_v1';
+const STORAGE_KEY_SETTINGS = 'ad_ec_tracker_settings_v1';
 
 let currentItems = [];
 let defaultItems = [];
 let isModified = false;
+let cascadeAllPreviousEnabled = false;
 
 // Drag State globals
 let dragGhost = null;
@@ -65,6 +67,7 @@ async function init() {
         }
 
         renderList();
+        setupControls();
         checkModified();
         loadingEl.style.display = 'none';
         scrollToProgress();
@@ -72,6 +75,37 @@ async function init() {
     } catch (err) {
         loadingEl.style.display = 'none';
         errorContainer.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+    }
+}
+
+function setupControls() {
+    const clearBtn = document.getElementById('clear-checkboxes');
+    const cascadeToggle = document.getElementById('cascade-toggle');
+
+    const storedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
+    if (storedSettings) {
+        try {
+            const settings = JSON.parse(storedSettings);
+            cascadeAllPreviousEnabled = !!settings.cascadeAllPreviousEnabled;
+        } catch { cascadeAllPreviousEnabled = false; }
+    }
+    if (cascadeToggle) cascadeToggle.checked = cascadeAllPreviousEnabled;
+
+    if (clearBtn) {
+        clearBtn.onclick = () => {
+            currentItems.forEach(item => item.done = false);
+            renderList();
+            saveData();
+        };
+    }
+
+    if (cascadeToggle) {
+        cascadeToggle.onchange = (e) => {
+            cascadeAllPreviousEnabled = !!e.target.checked;
+            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify({
+                cascadeAllPreviousEnabled
+            }));
+        };
     }
 }
 
@@ -513,6 +547,9 @@ function toggleStatus(id, isChecked) {
         const card = document.querySelector(`.card[data-id="${id}"]`);
         if (card) isChecked ? card.classList.add('done') : card.classList.remove('done');
     }
+    if (isChecked && cascadeAllPreviousEnabled) {
+        cascadePreviousChecks(id);
+    }
     if (isChecked) {
         cascadeEcChecks(id);
     }
@@ -560,6 +597,25 @@ function cascadeEcChecks(id) {
             }
         }
     });
+    saveData();
+}
+
+function cascadePreviousChecks(id) {
+    const index = currentItems.findIndex(i => i.id === id);
+    if (index <= 0) return;
+
+    for (let i = 0; i < index; i++) {
+        const other = currentItems[i];
+        if (!other.done) {
+            other.done = true;
+            const card = document.querySelector(`.card[data-id="${other.id}"]`);
+            if (card) {
+                card.classList.add('done');
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (checkbox) checkbox.checked = true;
+            }
+        }
+    }
     saveData();
 }
 
