@@ -35,6 +35,10 @@
     </header>
 
     <div id="app">
+        <div id="mobile-hint" class="mobile-hint">
+            <span>💡 <strong>Tap</strong> text to edit · <strong>Long-press</strong> card to drag</span>
+            <button class="hint-dismiss" onclick="dismissHint()">✕</button>
+        </div>
         <div id="loading" class="status-msg" style="text-align:center; color:#888;">Loading data...</div>
         <div id="error-container"></div>
         <div id="challenge-list"></div>

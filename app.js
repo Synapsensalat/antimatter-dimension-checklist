@@ -1,6 +1,7 @@
 const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1NrYADsW4s7wRYTE91Z0EFHbXcHaswuuMzG9a2WyGG0A/export?format=csv&gid=2010162056';
 const STORAGE_KEY_DATA = 'ad_ec_tracker_completed_v1';
 const STORAGE_KEY_SETTINGS = 'ad_ec_tracker_settings_v1';
+const STORAGE_KEY_HINT_DISMISSED = 'ad_ec_tracker_hint_dismissed';
 
 let currentItems = [];
 let defaultItems = [];
@@ -71,6 +72,7 @@ async function init() {
         checkModified();
         loadingEl.style.display = 'none';
         scrollToProgress();
+        checkMobileHint();
 
     } catch (err) {
         loadingEl.style.display = 'none';
@@ -310,6 +312,8 @@ function setupLongPressDrag(card) {
     let startX, startY;
     let lastX, lastY; // Track current position
     let isDragging = false;
+    let touchedEditable = false; // Track if we started on an editable element
+    let shouldPreventDefault = false;
 
     // Prevent context menu on long press
     card.addEventListener('contextmenu', function (e) {
@@ -322,19 +326,28 @@ function setupLongPressDrag(card) {
             return;
         }
 
+        // Check if we touched an editable element
+        touchedEditable = e.target.matches('.task-text, .tree-preview') ||
+            e.target.closest('.task-text, .tree-preview') !== null;
+
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
         lastX = startX;
         lastY = startY;
         isDragging = false;
+        shouldPreventDefault = false;
 
         // Start long press timer
         longPressTimer = setTimeout(() => {
             isDragging = true;
+            shouldPreventDefault = true;
 
             // Prevent text from being focused - blur any focused element
             document.activeElement?.blur();
+
+            // Clear any text selection that might have started
+            window.getSelection()?.removeAllRanges();
 
             // Haptic feedback if available
             if (navigator.vibrate) navigator.vibrate(50);
@@ -365,7 +378,50 @@ function setupLongPressDrag(card) {
             // Position ghost at current touch position
             moveGhost(lastX, lastY);
         }, LONG_PRESS_DURATION);
-    }, { passive: true }); // Use passive: true to allow scrolling until drag starts
+
+        // If on editable, we need to be able to prevent default after timer fires
+        // We'll handle this via a short delay check
+        if (touchedEditable) {
+            // Set up a check slightly before the long press triggers
+            setTimeout(() => {
+                // If timer is still active (not cancelled by movement), 
+                // we're about to enter drag mode
+                if (longPressTimer) {
+                    shouldPreventDefault = true;
+                }
+            }, LONG_PRESS_DURATION - 50);
+        }
+    }, { passive: true }); // Keep passive for initial touch
+
+    // Use a separate listener on editable elements to prevent focus on long press
+    const editables = card.querySelectorAll('.task-text, .tree-preview');
+    editables.forEach(editable => {
+        let editableTouchStart = 0;
+
+        editable.addEventListener('touchstart', function (e) {
+            editableTouchStart = Date.now();
+        }, { passive: true });
+
+        editable.addEventListener('touchend', function (e) {
+            const touchDuration = Date.now() - editableTouchStart;
+
+            // If this was a long press (or drag was triggered), prevent the tap from focusing
+            // But DON'T stopPropagation - we need the card's touchend to fire to complete the drag
+            if (touchDuration >= LONG_PRESS_DURATION || isDragging) {
+                e.preventDefault();
+                // Don't stop propagation - let the card's touchend handler run
+            }
+            // Short tap: allow normal behavior (focus for editing)
+        }, { passive: false });
+
+        // Prevent focus during drag
+        editable.addEventListener('focus', function (e) {
+            if (isDragging) {
+                e.preventDefault();
+                editable.blur();
+            }
+        });
+    });
 
     card.addEventListener('touchmove', function (e) {
         const touch = e.touches[0];
@@ -733,6 +789,24 @@ async function copyToClipboard(text, btnElement) {
             btnElement.classList.remove('copied');
         }, 1500);
     } catch (err) { alert('Manual copy needed'); }
+}
+
+function checkMobileHint() {
+    const hint = document.getElementById('mobile-hint');
+    if (!hint) return;
+
+    // If user has dismissed the hint before, hide it
+    if (localStorage.getItem(STORAGE_KEY_HINT_DISMISSED) === 'true') {
+        hint.classList.add('hidden');
+    }
+}
+
+function dismissHint() {
+    const hint = document.getElementById('mobile-hint');
+    if (hint) {
+        hint.classList.add('hidden');
+        localStorage.setItem(STORAGE_KEY_HINT_DISMISSED, 'true');
+    }
 }
 
 if ('serviceWorker' in navigator) {
