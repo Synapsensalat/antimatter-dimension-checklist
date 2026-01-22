@@ -1,4 +1,4 @@
-const CSV_FILE = 'data.csv';
+const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1NrYADsW4s7wRYTE91Z0EFHbXcHaswuuMzG9a2WyGG0A/export?format=csv&gid=2010162056';
 const STORAGE_KEY_DATA = 'ad_ec_tracker_completed_v1';
 const STORAGE_KEY_SETTINGS = 'ad_ec_tracker_settings_v1';
 
@@ -25,8 +25,8 @@ async function init() {
     const errorContainer = document.getElementById('error-container');
 
     try {
-        const response = await fetch(CSV_FILE);
-        if (!response.ok) throw new Error(`Failed to fetch ${CSV_FILE}`);
+        const response = await fetch(SHEETS_CSV_URL);
+        if (!response.ok) throw new Error('Failed to fetch data from Google Sheets');
         const text = await response.text();
 
         const rawData = parseCSV(text);
